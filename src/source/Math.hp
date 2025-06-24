@@ -1,0 +1,12 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+ohio.make(calculator)
+calculator means calculator btw
+ohio.add.code(name=calculator code="#!/data/data/com.termux/files/home/hopelang/HopeLang")
+ohio.add.obj(../headers/math.cool to <calculator>)
+ohio.add.obj(../headers/Input.header to <calculator>)
+ohio.add.code(name=calculator code="ohio.exec(mv $PREFIX/bin/Pst $PREFIX)")
+ohio.add.code(name=calculator code="ohio.exec(mv $PREFIX/bin/pst $PREFIX/bin/Pst)")
+ohio.add.code(name=calculator code="ohio.call(Input)")
+ohio.add.code(name=calculator code="ohio.call(math)")
+ohio.add.code(name=calculator code="ohio.exec(mv $PREFIX/bin/Pst $PREFIX/bin/pst)")
+ohio.add.code(name=calculator code="ohio.exec(mv $PREFIX/Pst $PREFIX/bin/Pst)")

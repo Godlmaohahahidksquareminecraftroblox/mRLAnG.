@@ -1,0 +1,1 @@
+ohio.func(math, ohio.exec(~/hopelang/headers/math $(cat tmp) > mathput && cat mathput && rm mathput))

@@ -1,0 +1,13 @@
+ohio.make(Games)
+Games means Games btw
+ohio.add.code(name=Games code="#!/data/data/com.termux/files/home/mrlang/Compiled/Compilers/MrLang")
+ohio.add.obj(/data/data/com.termux/files/home/mrlang/headers/Input.header to <Games>)
+ohio.add.code(name=Games code="ohio.say(you live in a peacefull village)")
+ohio.add.code(name=Games code="ohio.say(suddenly reality shatters)")
+ohio.add.code(name=Games code="ohio.say(what do you do?)")
+ohio.add.code(name=Games code="ohio.say(1- cry in dispair)")
+ohio.add.code(name=Games code="ohio.say(2- Try to fight Reality)")
+ohio.add.code(name=Games code="ohio.say(3- accept the end)")
+ohio.add.code(name=Games code="ohio.call(Input)")
+ohio.exec(cat /data/data/com.termux/files/home/mrlang/src/source/ph.helper >> Games)
+ohio.add.code(name=Games code="ohio.exec(rm tmp)")

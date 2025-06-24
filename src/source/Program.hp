@@ -1,0 +1,10 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+Main means /data/data/com.termux/files/home/hopelang/Main btw
+ohio.make(Main)
+ohio.add.code(name=Main code="#!/data/data/com.termux/files/home/hopelang")
+ohio.add.obj(../headers/Input.header to <Main>)
+ohio.add.code(name=Main code="ohio.say(Welcome to my Program!)")
+ohio.add.code(name=Main code="ohio.call(Input)")
+ohio.add.code(name=Main code="ohio.exec(cat tmp)")
+ohio.add.code(name=Main code="ohio.exec(rm tmp)")
+ohio.say("Made program, run with HopeLang")

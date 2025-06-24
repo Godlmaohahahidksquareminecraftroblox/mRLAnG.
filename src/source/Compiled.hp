@@ -1,0 +1,12 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+ohio.make(Compiling)
+ohio.add.code(name=Compiling code="#!/bin/sh")
+ohio.add.code(name=Compiling code="Pst")
+ohio.add.code(name=Compiling code="python Python_input")
+ohio.add.code(name=Compiling code="echo you said $(cat tmp) Right!")
+ohio.add.code(name=Compiling code="rm Python_input")
+ohio.exec(shc -f Compiling)
+ohio.exec(rm Compiling Compiling.x.c)
+ohio.make(executable)
+ohio.exec(rm executable)
+ohio.exec(mv Compiling.x executable)

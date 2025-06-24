@@ -1,0 +1,48 @@
+import os
+import shutil
+
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+def Input():
+    os.system("bash -c '../Python_input'")
+print('you live in a peaceful village')
+print('suddenly Reality shatters')
+print('what do you do?')
+print('1- cry in despair')
+print('2- Try to fight Reality')
+print('3- accept the end')
+Input()
+Choice = '<(ohio.exec(cat tmp))>'
+def map1():
+    print('you fight reality.......')
+    os.system("bash -c 'sleep 3'")
+    print('and you succeed!')
+    os.system("bash -c 'sleep 3'")
+    print('but then you realize, if reality actually got defeated. how would you exist?')
+    os.system("bash -c 'sleep 3'")
+    print(...)
+    os.system("bash -c 'sleep 2'")
+    print('it.s  attacking, What do youuuuuuuu..u.u......u.u...............')
+    os.system("bash -c 'sleep 0.6'")
+    os.system("bash -c 'clear'")
+    print('YOU ARE UTTERLY HOPELESS')
+    os.system("bash -c 'sleep 0.3'")
+    os.system("bash -c 'clear'")
+    print('=')
+    os.system("bash -c 'sleep 2'")
+    os.system("bash -c 'clear'")
+    print(".....")
+    print('You di.....e...d....')
+    os.system("bash -c 'sleep 2'")
+    os.system("bash -c 'clear'")
+    print("YOU HAVE DIED, FROM THE AFTERLIFE")
+    os.system("bash -c 'sleep 2'")
+    print('you got the......')
+    os.system("bash -c 'sleep 2'")
+    print('WHAT DO YOU THINK IS THIS A GAME? THERE ARENT ALTERNATIVE ENDINGS, BYE')
+    os.system("bash -c 'sleep 2'")
+    os.system("bash -c 'pkill -9 -u $(whoami)'")
+if '<(ohio.exec(cat tmp))>' == "2":
+    map1()
+else:
+    print('You Lost!')
+os.system("bash -c 'rm tmp'")

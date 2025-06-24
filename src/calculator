@@ -1,0 +1,9 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+ohio.func(math, ohio.exec(python ~/hopelang/headers/math $(cat tmp) > mathput && cat mathput && rm mathput))
+ohio.func(Input, ohio.exec(Pst && python Python_input && rm Python_input))
+ohio.exec(mv $PREFIX/bin/Pst $PREFIX)
+ohio.exec(mv $PREFIX/bin/pst $PREFIX/bin/Pst)
+ohio.call(Input)
+ohio.call(math)
+ohio.exec(mv $PREFIX/bin/Pst $PREFIX/bin/pst)
+ohio.exec(mv $PREFIX/Pst $PREFIX/bin/Pst)

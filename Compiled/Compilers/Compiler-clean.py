@@ -1,0 +1,131 @@
+#!/data/data/com.termux/files/usr/bin/python
+
+import re
+import sys
+import shutil
+import os
+import ast
+import keyword
+
+variables = {}
+functions = {}
+user_funcs = {}
+
+def needs_quotes(val):
+    if val in keyword.kwlist:
+        return False
+    try:
+        eval(val, {}, {})
+        return False
+    except:
+        return True
+
+def replace_vars(text):
+    # Inline exec calls
+    text = re.sub(
+        r"<ohio\.exec\((.+?)\)>",
+        lambda m: f"os.popen({m.group(1)!r}).read().strip()",
+        text
+    )
+    # Variable substitutions
+    text = re.sub(r"<(\w+)>", lambda m: variables.get(m.group(1), m.group(1)), text)
+    return text
+
+def compile_hopelang_line(line):
+    line = line.strip()
+    if line.startswith("//") or not line:
+        return ""
+    if "means" in line and line.endswith("btw"):
+        match = re.match(r"(\w+) means (.+?) btw", line)
+        if match:
+            var, val = match.groups()
+            val = replace_vars(val.strip())
+            if needs_quotes(val):
+                val = f"{val!r}"
+            variables[var] = val
+            return f"{var} = {val}"
+    if line.startswith("ohio.make("):
+        filename = re.search(r"ohio\.make\((.+?)\)", line).group(1)
+        filename = replace_vars(filename)
+        return f'open({filename!r}, "w").close()'
+    if "ohio.copy" in line:
+        match = re.search(r"New=(\w+)\s+Old=(\w+)", line)
+        if match:
+            dst, src = match.groups()
+            dst = replace_vars(dst)
+            src = replace_vars(src)
+            return f'shutil.copy({src!r}, {dst!r})'
+    if line.startswith("ohio.add.code"):
+        match = re.search(r'name=(\w+),\s*code="(.+?)"', line)
+        if match:
+            name, code = match.groups()
+            name = replace_vars(name)
+            return f'with open({name!r}, "a") as f:\n    f.write({code!r} + "\\n")'
+    if "ohio.add.obj" in line and "to" in line:
+        parts = re.search(r"ohio\.add\.obj\((.+?)\)", line).group(1)
+        src = parts.split(" to ")[0].strip()
+        dst = re.search(r'to\s+<([^>]+)>', parts).group(1)
+        dst = replace_vars(dst)
+        return f'with open("{src}", "r") as s, open("{dst}", "a") as d:\n    d.write(s.read())'
+    if line.startswith("ohio.exec("):
+        match = re.match(r"ohio\.exec\((.*)\)", line)
+        if match:
+            cmd = replace_vars(match.group(1).strip('"'))
+            bash_wrapped_cmd = f"bash -c {cmd!r}"
+            return f'os.system({bash_wrapped_cmd!r})'
+        else:
+            raise ValueError(f"Invalid ohio.exec syntax: {line}")
+    if line.startswith("ohio.say("):
+        match = re.search(r'ohio\.say\((.+?)\)', line)
+        if match:
+            msg = match.group(1).strip()
+            if msg.startswith("<") and msg.endswith(">"):
+                msg = replace_vars(msg)
+            elif not (msg.startswith("'") or msg.startswith('"')) and needs_quotes(msg):
+                msg = f"{msg!r}"
+            return f'print({msg})'
+    if line.startswith("ohio.func("):
+        match = re.match(r"ohio\.func\((\w+),\s*(.+)\)", line)
+        if match:
+            func, body = match.groups()
+            if (body.startswith('"') and body.endswith('"')) or (body.startswith("'") and body.endswith("'")):
+                body = body[1:-1]
+            lines = [f"    {compile_hopelang_line(l.strip())}" for l in body.split("\\n")]
+            user_funcs[func] = "\n".join(lines)
+            return f"def {func}():\n" + "\n".join(lines)
+    if line.startswith("ohio.call("):
+        match = re.search(r"ohio\.call\((\w+)\)", line)
+        if match:
+            func = match.group(1)
+            return f"{func}()"
+        else:
+            raise ValueError(f"Invalid ohio.call syntax: {line}")
+    if line.startswith("if "):
+        match = re.match(r"if (.+?) then (.+?)(?: else then (.+))?$", line)
+        if match:
+            cond, then_block, else_block = match.groups()
+            left, right = cond.split("==")
+            left = replace_vars(left.strip())
+            right = replace_vars(right.strip())
+            then_line = compile_hopelang_line(then_block.strip())
+            result = f'if {left} == {right}:\n    {then_line}'
+            if else_block:
+                else_line = compile_hopelang_line(else_block.strip())
+                result += f'\nelse:\n    {else_line}'
+            return result
+    return replace_vars(line)
+
+def compile_file(in_path, out_path):
+    with open(in_path, "r") as infile, open(out_path, "w") as outfile:
+        outfile.write("import os\nimport shutil\n\n")
+        for line in infile:
+            py_line = compile_hopelang_line(line)
+            if py_line:
+                outfile.write(py_line + "\n")
+    print(f"Compiled {in_path} -> {out_path}")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: <input.hp> <output.py>")
+    else:
+        compile_file(sys.argv[1], sys.argv[2])

@@ -1,0 +1,22 @@
+import sys
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python math.py [expression] or python math.py [num1] [op] [num2]")
+        return
+
+    # Case 1: Full expression in one string like "1+1"
+    if len(sys.argv) == 2:
+        expr = sys.argv[1]
+    else:
+        # Case 2: Split args like "1 + 1"
+        expr = ''.join(sys.argv[1:])
+
+    try:
+        result = eval(expr)
+        print(result)
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()

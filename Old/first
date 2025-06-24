@@ -1,0 +1,226 @@
+#!//data/data/com.termux/files/usr/bin/python
+import re
+import os
+import shutil
+import tkinter as tk
+from PIL import Image, ImageTk
+import sys
+
+variables = {}
+functions = {}
+gui_elements = []
+user_funcs = {}
+
+def parse_variable(line):
+    match = re.match(r"(\w+) means (\w+) btw", line)
+    if match:
+        var_name, value = match.groups()
+        variables[var_name] = value
+        print(f"[VAR] {var_name} = {value}")
+
+def resolve_var(var_name):
+    seen = set()
+    while var_name in variables and var_name not in seen:
+        seen.add(var_name)
+        var_name = variables[var_name]
+    return var_name
+
+def replace_vars(text):
+    return re.sub(r"<(\w+)>", lambda m: resolve_var(m.group(1)) if m.group(1) in variables else f"<{m.group(1)}>", text)
+
+def parse_args(args):
+    args = replace_vars(args)
+    args_dict = {}
+    parts = re.findall(r'(\w+)=(".*?"|\S+)', args)
+    if parts:
+        for key, val in parts:
+            val = val.strip('"')
+            if val.isdigit():
+                val = int(val)
+            args_dict[key] = val
+    else:
+        args_dict["_single"] = args.strip('"')
+    return args_dict
+
+def execute_ohio(line):
+    command_line = line[len("ohio."):]
+    match = re.match(r"(\w+\.\w+|\w+)\((.*)\)", command_line)
+    if not match:
+        print(f"[ERROR] Invalid ohio command: {line}")
+        return
+
+    cmd, args = match.groups()
+    args_dict = parse_args(args)
+
+    if cmd == "make":
+        filename = args_dict.get("_single", "")
+        with open(filename, "w") as f:
+            f.write("")
+        print(f"[FILE] Created: {filename}")
+
+    elif cmd == "copy":
+        src = args_dict.get("Old")
+        dst = args_dict.get("New")
+        if os.path.exists(src):
+            shutil.copy(src, dst)
+            print(f"[FILE] Copied {src} -> {dst}")
+        else:
+            print(f"[ERROR] Missing source file: {src}")
+
+    elif cmd == "add.obj":
+        if " to " in args:
+            src = args.split(" to ")[0].strip()
+            dst = replace_vars(re.search(r"to\s+<([^>]+)>", args).group(1))
+            if os.path.exists(src):
+                with open(src, "r") as s, open(dst, "a") as d:
+                    d.write(s.read())
+                print(f"[OBJ] Added contents of {src} to {dst}")
+            else:
+                print(f"[ERROR] Object {src} not found")
+        else:
+            print(f"[ERROR] Invalid syntax for add.obj")
+
+    elif cmd == "add.code":
+        name = args_dict.get("name")
+        code = args_dict.get("code")
+        if name and code is not None:
+            with open(name, "a") as f:
+                f.write(code + "\n")
+            print(f"[CODE] Added to {name}: {code}")
+        else:
+            print(f"[ERROR] Missing name or code in add.code")
+
+    elif cmd == "exec":
+        raw_cmd = args_dict.get("_single")
+        if raw_cmd:
+            raw_cmd = replace_vars(raw_cmd)
+            print(f"[EXEC] Running: {raw_cmd}")
+            os.system(raw_cmd)
+        else:
+            print("[ERROR] Nothing to exec")
+
+    elif cmd == "func":
+        name = args_dict.get("_single")
+        body = args.split(",", 1)[1].strip() if "," in args else ""
+        user_funcs[name] = [l.strip() for l in body.split("\n") if l.strip()]
+        print(f"[FUNC] Defined function {name}")
+
+    elif cmd == "call":
+        func_name = args_dict.get("_single")
+        if func_name in user_funcs:
+            for l in user_funcs[func_name]:
+                run_line(l)
+        else:
+            print(f"[ERROR] Unknown function: {func_name}")
+
+    elif cmd.startswith("GUI"):
+        gui_elements.append((cmd.split(".")[1], args_dict))
+
+    elif cmd == "GUI.start":
+        launch_gui()
+
+    else:
+        print(f"[EXEC] ohio.{cmd}({args})")
+
+def launch_gui():
+    print("[GUI] Launching GUI...")
+    root = tk.Tk()
+    root.title("Hopelang GUI")
+    for kind, props in gui_elements:
+        if kind == "label":
+            text = props.get("text", "Label")
+            tk.Label(root, text=text).pack(pady=props.get("pady", 5))
+        elif kind == "button":
+            text = props.get("text", "Click Me")
+            tk.Button(root, text=text).pack(pady=props.get("pady", 5))
+        elif kind == "image":
+            path = props.get("src")
+            if path and os.path.exists(path):
+                img = Image.open(path)
+                img = img.resize((props.get("width", 100), props.get("height", 100)))
+                tk_img = ImageTk.PhotoImage(img)
+                label = tk.Label(root, image=tk_img)
+                label.image = tk_img
+                label.pack(pady=props.get("pady", 5))
+            else:
+                print(f"[ERROR] Image not found: {path}")
+    tk.Button(root, text="Exit", command=root.destroy).pack(pady=10)
+    root.mainloop()
+
+def run_file(path):
+    with open(path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("//"):
+                continue
+            run_line(line)
+
+def compile_file(path):
+    out_path = path + ".compiled.sh"
+    with open(path, 'r') as infile, open(out_path, 'w') as outfile:
+        for line in infile:
+            line = line.strip()
+            if "ohio.add.code" in line:
+                code_match = re.search(r'#\!/(.+)', line)
+                if code_match:
+                    outfile.write(f"#!/{code_match.group(1)}\n")
+                else:
+                    code = re.search(r'code="(.+?)"', line)
+                    if code:
+                        outfile.write(code.group(1) + "\n")
+    print(f"[COMPILE] Compiled to {out_path}")
+
+def run_line(line):
+    if "means" in line and line.endswith("btw"):
+        parse_variable(line)
+    elif line.startswith("ohio."):
+        execute_ohio(line)
+    elif line.startswith("if "):
+        process_if_statement(line)
+
+def process_if_statement(line):
+    condition_block = line[3:]
+    if " then " not in condition_block:
+        print(f"[ERROR] Invalid if syntax: {line}")
+        return
+    condition, then_block = condition_block.split(" then ", 1)
+    else_block = None
+    if " else then " in then_block:
+        then_block, else_block = then_block.split(" else then ", 1)
+    if "==" in condition:
+        left, right = condition.split("==")
+        left = resolve_var(left.strip())
+        right = resolve_var(right.strip())
+        if left == right:
+            run_line(then_block.strip())
+        elif else_block:
+            run_line(else_block.strip())
+    else:
+        print(f"[ERROR] Unsupported condition: {condition}")
+
+def print_help():
+    print("""
+Hopelang Interpreter & Compiler
+Usage:
+  python HopeLang.py <file.hp>         Run Hopelang file
+  python HopeLang.py --compile <file>  Compile Hopelang to .sh
+  python HopeLang.py --help            Show this help message
+
+Lang Features:
+  <var> syntax            Replace variable defined via `name means value btw`
+  ohio.make(<name>)       Create empty file
+  ohio.add.code(...)      Add a line to file
+  ohio.add.obj(...)       Add contents of one file to another
+  ohio.exec(...)          Run a command or script
+  ohio.func(name, ...)    Define function (multi-line separated by \n)
+  ohio.call(name)         Call a user-defined function
+  GUI support via ohio.GUI.* + ohio.GUI.start()
+""")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2 or sys.argv[1] == "--help":
+        print_help()
+    elif sys.argv[1] == "--compile" and len(sys.argv) > 2:
+        compile_file(sys.argv[2])
+    else:
+        run_file(sys.argv[1])

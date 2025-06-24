@@ -1,0 +1,10 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+ohio.func(Input, ohio.exec(Pst && python Python_input && rm Python_input))
+ohio.say(welcome to text Journey!)
+ohio.say(you are in a village)
+ohio.say(what do you do?)
+ohio.say(1- exist)
+ohio.say(2- dont exist)
+ohio.call(Input)
+Choice means <(ohio.exec(cat tmp))> btw
+if <Choice> == 2 then ohio.say(You won!) else then ohio.exec("./HopeLang Game")

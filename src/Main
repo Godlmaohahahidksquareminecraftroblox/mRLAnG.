@@ -1,0 +1,6 @@
+#!/data/data/com.termux/files/home/hopelang
+ohio.func(Input, ohio.exec(Pst && python Python_input && rm Python_input))
+ohio.say(Welcome to my Program!)
+ohio.call(Input)
+ohio.exec(cat tmp)
+ohio.exec(rm tmp)

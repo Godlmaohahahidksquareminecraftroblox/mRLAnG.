@@ -1,0 +1,30 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+error() {
+    echo "Error: either no file was provided or compiling failed"
+    exit 1
+}
+
+# Step 1: Compile Hopelang to Python
+./NCE_Compiler "$@" || error
+
+# Step 2: Convert Python to C using Cython
+cython --embed -3 -o "$2.c" "$2" || error
+
+# Step 3: Compile C to binary with ultra-optimized flags
+clang -O3 -march=native -mtune=native \
+  -ffast-math -funroll-loops -fno-exceptions -fno-rtti -fno-stack-protector \
+  -fstrict-aliasing -fvisibility=hidden -fomit-frame-pointer \
+  -flto=thin -fuse-ld=lld -Wl,--gc-sections -Wl,-strip-all \
+  -I/data/data/com.termux/files/usr/include/python3.12 \
+  -lpython3.12 -lm -o "$2.bin" "$2.c"
+
+# Optional: Strip binary
+strip --strip-all "$2.bin"
+
+# Step 4: make it executable
+chmod +x "$2.bin"
+
+# Step 5: Cleanup
+rm -rf "$2.c" "$2" build* __pycache__ *Build* "$2.build"
+mv "$2.bin" "$2"

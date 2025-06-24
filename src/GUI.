@@ -1,0 +1,6 @@
+ohio.make(Mainobj)
+Mainobj means Mainobj btw
+ohio.add.obj(../headers/gui_examples to <Mainobj>)
+ohio.add.code(name=Mainobj code="ohio.call(example)")
+ohio.add.code(name=Mainobj code="ohio.exec(rm GUI)"
+ohio.exec(../HopeLang Mainobj)

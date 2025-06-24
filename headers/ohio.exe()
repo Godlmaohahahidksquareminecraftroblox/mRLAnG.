@@ -1,0 +1,7 @@
+#!/data/data/com.termux/files/home/hopelang/HopeLang
+ohio.say("oh so you are brave, let me kill your cpu now...")
+ohio.make(Hahaha)
+ohio.add.code(name=Hahaha code="ohio.make(O)")
+ohio.add.code(name=Hahaha code="ohio.exec(rm O)")
+ohio.add.code(name=Hahaha code="ohio.exec(HopeLang Hahaha)")
+ohio.exec(./HopeLang Hahaha)
